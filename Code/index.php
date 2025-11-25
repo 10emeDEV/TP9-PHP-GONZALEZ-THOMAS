@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 abstract class AbstractPlayer
 {
+    public const RATIO_MULTIPLIER = 1;
+
     public function __construct(protected string $name, protected float $ratio = 400.0)
     {
     }
@@ -29,7 +31,12 @@ abstract class AbstractPlayer
 
     public function updateRatioAgainst(self $player, int $result): void
     {
-        $this->ratio += 32 * ($result - $this->probabilityAgainst($player));
+        $this->ratio += 32 * $this->getRatioMultiplier() * ($result - $this->probabilityAgainst($player));
+    }
+
+    protected function getRatioMultiplier(): int
+    {
+        return static::RATIO_MULTIPLIER;
     }
 
     public function getRatio(): float
@@ -41,6 +48,16 @@ abstract class AbstractPlayer
 /** @noinspection PhpUnused */
 final class Player extends AbstractPlayer
 {
+}
+
+final class BlitzPlayer extends AbstractPlayer
+{
+    public const RATIO_MULTIPLIER = 4;
+
+    public function __construct(string $name)
+    {
+        parent::__construct($name, 1200.0);
+    }
 }
 
 final class QueuingPlayer extends AbstractPlayer
@@ -92,9 +109,12 @@ $greg = new Player('greg', 400);
 /** @var Player $jade */
 $jade = new Player('jade', 476);
 
+/** @var BlitzPlayer $blitzPlayer */
+$blitzPlayer = new BlitzPlayer('blitz_champion');
+
 /** @noinspection PhpParamsInspection */
 $lobby = new Lobby();
-$lobby->addPlayers($greg, $jade);
+$lobby->addPlayers($greg, $jade, $blitzPlayer);
 
 var_dump($lobby->findOponents($lobby->queuingPlayers[0]));
 
