@@ -11,6 +11,19 @@
 
 declare(strict_types=1);
 
+class QueuingPlayer extends Player
+{
+    public function __construct(Player $player, protected int $range = 1)
+    {
+        parent::__construct($player->getName(), $player->getRatio());
+    }
+
+    public function getRange(): int
+    {
+        return $this->range;
+    }
+}
+
 class Lobby
 {
     /** @var array<QueuingPlayer> */
