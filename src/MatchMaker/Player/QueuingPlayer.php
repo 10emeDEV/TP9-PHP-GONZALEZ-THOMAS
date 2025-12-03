@@ -4,11 +4,26 @@ declare(strict_types=1);
 
 namespace App\MatchMaker\Player;
 
-class QueuingPlayer extends Player implements QueuingPlayerInterface
+class QueuingPlayer implements QueuingPlayerInterface
 {
-    public function __construct(PlayerInterface $player, protected int $range = 1)
+    public function __construct(private PlayerInterface $player, protected int $range = 1)
     {
-        parent::__construct($player->getName(), $player->getRatio());
+    }
+
+    public function getName(): string
+    {
+        return $this->player->getName();
+    }
+
+    public function getRatio(): float
+    {
+        return $this->player->getRatio();
+    }
+
+    public function updateRatioAgainst(PlayerInterface $player, int $result): void
+    {
+        // Delegate to the underlying player implementation
+        $this->player->updateRatioAgainst($player, $result);
     }
 
     public function getRange(): int
@@ -19,5 +34,10 @@ class QueuingPlayer extends Player implements QueuingPlayerInterface
     public function upgradeRange(): void
     {
         $this->range = min($this->range + 1, 40);
+    }
+
+    public function getPlayer(): PlayerInterface
+    {
+        return $this->player;
     }
 }
