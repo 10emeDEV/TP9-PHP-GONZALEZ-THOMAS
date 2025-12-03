@@ -11,20 +11,26 @@
 
 declare(strict_types=1);
 
-// Minimal PSR-4-like autoloader for App\MatchMaker namespace
-spl_autoload_register(static function (string $class) : void {
-    $prefix = 'App\\MatchMaker\\';
-    if (str_starts_with($class, $prefix) === false) {
-        return;
-    }
+// Prefer Composer autoload (PSR-4) when available, otherwise fall back to a minimal autoloader
+$composer = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($composer)) {
+    require_once $composer;
+} else {
+    // Minimal PSR-4-like autoloader for App\MatchMaker namespace
+    spl_autoload_register(static function (string $class) : void {
+        $prefix = 'App\\MatchMaker\\';
+        if (str_starts_with($class, $prefix) === false) {
+            return;
+        }
 
-    $relative = substr($class, strlen($prefix));
-    $path = __DIR__ . '/../src/MatchMaker/' . str_replace('\\', '/', $relative) . '.php';
+        $relative = substr($class, strlen($prefix));
+        $path = __DIR__ . '/../src/MatchMaker/' . str_replace('\\', '/', $relative) . '.php';
 
-    if (file_exists($path)) {
-        require_once $path;
-    }
-});
+        if (file_exists($path)) {
+            require_once $path;
+        }
+    });
+}
 
 use App\MatchMaker\Player\BlitzPlayer;
 use App\MatchMaker\Lobby;

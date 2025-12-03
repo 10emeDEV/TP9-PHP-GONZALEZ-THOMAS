@@ -1,0 +1,11 @@
+{
+  "name": "10emedev/tp9-php",
+  "description": "MatchMaker example project",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\MatchMaker\\": "src/MatchMaker/"
+    }
+  },
+  "require": {}
+}
