@@ -11,110 +11,29 @@
 
 declare(strict_types=1);
 
-abstract class AbstractPlayer
-{
-    public const RATIO_MULTIPLIER = 1;
-
-    public function __construct(protected string $name, protected float $ratio = 400.0)
-    {
+// Minimal PSR-4-like autoloader for App\MatchMaker namespace
+spl_autoload_register(static function (string $class) : void {
+    $prefix = 'App\\MatchMaker\\';
+    if (str_starts_with($class, $prefix) === false) {
+        return;
     }
 
-    public function getName(): string
-    {
-        return $this->name;
+    $relative = substr($class, strlen($prefix));
+    $path = __DIR__ . '/../src/MatchMaker/' . str_replace('\\', '/', $relative) . '.php';
+
+    if (file_exists($path)) {
+        require_once $path;
     }
+});
 
-    protected function probabilityAgainst(self $player): float
-    {
-        return 1 / (1 + (10 ** (($player->getRatio() - $this->getRatio()) / 400)));
-    }
+use App\MatchMaker\Player\BlitzPlayer;
+use App\MatchMaker\Lobby;
 
-    public function updateRatioAgainst(self $player, int $result): void
-    {
-        $this->ratio += 32 * $this->getRatioMultiplier() * ($result - $this->probabilityAgainst($player));
-    }
+$greg = new BlitzPlayer('greg');
+$jade = new BlitzPlayer('jade');
 
-    protected function getRatioMultiplier(): int
-    {
-        return static::RATIO_MULTIPLIER;
-    }
-
-    public function getRatio(): float
-    {
-        return $this->ratio;
-    }
-}
-
-/** @noinspection PhpUnused */
-final class Player extends AbstractPlayer
-{
-}
-
-final class BlitzPlayer extends AbstractPlayer
-{
-    public const RATIO_MULTIPLIER = 4;
-
-    public function __construct(string $name)
-    {
-        parent::__construct($name, 1200.0);
-    }
-}
-
-final class QueuingPlayer extends AbstractPlayer
-{
-    public function __construct(AbstractPlayer $player, protected int $range = 1)
-    {
-        parent::__construct($player->getName(), $player->getRatio());
-    }
-
-    public function getRange(): int
-    {
-        return $this->range;
-    }
-}
-
-final class Lobby
-{
-    /** @var array<QueuingPlayer> */
-    public array $queuingPlayers = [];
-
-    public function findOponents(QueuingPlayer $player): array
-    {
-        $minLevel = round($player->getRatio() / 100);
-        $maxLevel = $minLevel + $player->getRange();
-
-        return array_filter($this->queuingPlayers, static function (QueuingPlayer $potentialOponent) use ($minLevel, $maxLevel, $player) {
-            $playerLevel = round($potentialOponent->getRatio() / 100);
-
-            return $player !== $potentialOponent && ($minLevel <= $playerLevel) && ($playerLevel <= $maxLevel);
-        });
-    }
-
-    public function addPlayer(AbstractPlayer $player): void
-    {
-        $this->queuingPlayers[] = new QueuingPlayer($player);
-    }
-
-    /** @noinspection PhpParamsInspection */
-    public function addPlayers(AbstractPlayer ...$players): void
-    {
-        foreach ($players as $player) {
-            $this->addPlayer($player);
-        }
-    }
-}
-
-/** @var Player $greg */
-$greg = new Player('greg', 400);
-/** @var Player $jade */
-$jade = new Player('jade', 476);
-
-/** @var BlitzPlayer $blitzPlayer */
-$blitzPlayer = new BlitzPlayer('blitz_champion');
-
-/** @noinspection PhpParamsInspection */
 $lobby = new Lobby();
-$lobby->addPlayers($greg, $jade, $blitzPlayer);
+$lobby->addPlayers($greg, $jade);
 
 var_dump($lobby->findOponents($lobby->queuingPlayers[0]));
 
